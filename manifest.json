@@ -1,0 +1,17 @@
+{
+    "manifest_version": 2,
+
+    "name": "aliasing",
+    "description": "",
+    "version": "1.0",
+
+    "omnibox": {"keyword" : "alias"},
+    "permissions": [
+        "activeTab",
+        "https://ajax.googleapis.com/"
+    ],
+    "background": {
+        "persistent": false,
+        "scripts": ["background.js"]
+    }
+}
