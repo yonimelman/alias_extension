@@ -5,7 +5,7 @@ var commands = {
     '#add'   : 'Add the current page as an alias',
     '#show'  : 'Show all aliases',
     '#purge' : 'Remove all aliases'
-}
+};
 
 chrome.omnibox.onInputChanged.addListener(
   function(text, suggest) {
@@ -36,7 +36,7 @@ function updateSuggestions(text, suggest) {
     if (text.startsWith('#')){
         suggestions = handleCommands(text);
     }
-    else if (text != ''){
+    else if (text !== ''){
 
         var match = '';
         var url = '';
@@ -49,7 +49,7 @@ function updateSuggestions(text, suggest) {
                     {description: url}
                 );
                 return;
-            };
+            }
             if (key.includes(text)){
                 match = key.replace(text, addXMLMatch());
 
@@ -58,16 +58,16 @@ function updateSuggestions(text, suggest) {
                     content: key,
                     description: match + ": " + url
                 });
-              };
-            };
+              }
+            }
         console.log("presenting " + suggestions.length + " suggestions");
 
-        };
+        }
     suggest(suggestions);
-    };
+}
 
 function handleCommands(text){
-    suggestions = []
+    suggestions = [];
     params = text.split(" ");
     command_part = params[0];
 
@@ -107,47 +107,47 @@ function handleCommands(text){
     }
     return suggestions;
 
-};
+}
 
 
 function getSuggestion(content, desc){
     return {content: content, description: varifyXML(desc)};
-};
+}
 
 function setDefaultSuggestion(text){
     chrome.omnibox.setDefaultSuggestion({description: varifyXML(text)});
-};
+}
 
 function setBaseDefaultSuggestion(){
-    setDefaultSuggestion('<match>Alias</match>: Enter an alias or # for commands menu')
-};
+    setDefaultSuggestion('<match>Alias</match>: Enter an alias or # for commands menu');
+}
 
 function setCommandsDefaultSuggestion(){
-    setDefaultSuggestion('<match>Commands</match>: Enter one of the following commands')
-};
+    setDefaultSuggestion('<match>Commands</match>: Enter one of the following commands');
+}
 
 function addAlias(alias){
     aliases[alias] = current_url;
     chrome.storage.local.set({"aliases": aliasses});
-};
+}
 
 function removeAlias(alias){
-    delete aliases.alias
+    delete aliases.alias;
     chrome.storage.local.set({"aliases": aliasses});
-};
+}
 
 function showAliases(){
     console.log(aliases);
 }
 
 function varifyXML(text){
-    var fixed_text = text
-    fixed_text = fixed_text.replace('"', "&quot;")
-    fixed_text = fixed_text.replace("'", "&apos;")
-    fixed_text = fixed_text.replace('<', "&lt;")
-    fixed_text = fixed_text.replace('>', "&gt;")
-    fixed_text = fixed_text.replace('&', "&amp;")
-    return fixed_text
+    var fixed_text = text;
+    fixed_text = fixed_text.replace('"', "&quot;");
+    fixed_text = fixed_text.replace("'", "&apos;");
+    fixed_text = fixed_text.replace('<', "&lt;");
+    fixed_text = fixed_text.replace('>', "&gt;");
+    fixed_text = fixed_text.replace('&', "&amp;");
+    return fixed_text;
 }
 
 function addXMLMatch(text){
@@ -161,16 +161,16 @@ function addXMLUrl(text){
 function loadAliases(){
     chrome.storage.local.get("aliases", function(result){
         if (result.aliases)
-            aliases = result.aliases
-    })
-};
+            aliases = result.aliases;
+    });
+}
 
 function navigate(url) {
   chrome.tabs.query({active: true, currentWindow: true}, function(tabs) {
     chrome.tabs.update(tabs[0].id, {url: url});
   });
-};
+}
 
 function setCurrentUrl(){
-    chrome.tabs.query({active: true}, function(t){current_url = t[0].url});
-};
+    chrome.tabs.query({active: true}, function(t){current_url = t[0].url;});
+}
