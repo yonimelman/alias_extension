@@ -4,9 +4,9 @@ var current_url;
 var commands = {
     '#add'   : addXMLDim('alias') + ' - Creates an alias for the current url',
     '#remove': addXMLDim('alias') + ' - Removes an existing alias',
+    '#rename': addXMLDim('alias new_alias') + ' - Change name of an alias',
     '#show'  : '- Show all aliases',
     '#purge' : '- Remove all aliases',
-    // '#rename': ' <alias> <new alias> - Change name of an alias'
 };
 
 loadAliases();
@@ -41,12 +41,19 @@ function executeRequest(text){
     }
 
     if (comm == 'add'){
-        addAlias(data);
+        if (!(data in aliases))
+            addAlias(data);
     }
 
     if (comm == 'remove'){
         if (data in aliases)
             removeAlias(data);
+    }
+
+    if (comm == 'rename'){
+        [alias, new_alias] = data;
+        if (alias in aliases && new_alias && !(new_alias in aliases))
+            renameAlias(alias, new_alias);
     }
 
     if (comm == 'show'){
@@ -56,6 +63,7 @@ function executeRequest(text){
     if (comm == 'purge'){
         purgeAliases();
     }
+
 }
 
 
@@ -71,18 +79,40 @@ function getSuggestionsByInput(text){
         return DefaultAliasSuggestions(data);
 
     if (comm == 'add'){
-        setDefaultSuggestion("Enter to add " + addXMLMatch(data) + ' as ' + addXMLUrl(varifyXML(current_url)));
+        if (data in aliases)
+            setDefaultSuggestion("Alias " + addXMLMatch(new_alias) + "already exists");
+        else
+            setDefaultSuggestion("Enter to add " + addXMLMatch(data) + ' as ' + addXMLUrl(varifyXML(current_url)));
         return [];
     }
 
     if (comm == 'remove'){
         if (data in aliases)
             setDefaultSuggestion("Enter to remove " + addXMLMatch(data) + ' as ' + addXMLUrl(varifyXML(aliases[data])));
-        else {
-            setDefaultSuggestion("Unknown alias for removal");
+        else
+            setDefaultSuggestion("Unknown alias " + addXMLMatch(data));
+        return [];
+    }
+
+    if (comm == 'rename'){
+        alias = data[0];
+        new_alias = data[1];
+        if (alias in aliases){
+            if (new_alias){
+                if (new_alias in aliases)
+                    setDefaultSuggestion("Alias " + addXMLMatch(new_alias) + "already exists");
+                else
+                    setDefaultSuggestion("Enter to rename " + addXMLMatch(alias) + " to " + addXMLMatch(new_alias));
+            }
+            else
+                setDefaultSuggestion("Enter to rename " + addXMLMatch(alias) + " to " + addXMLDim('new_alias'));
+        }
+        else{
+            setDefaultSuggestion("Unknown alias " + addXMLMatch(alias));
         }
         return [];
     }
+
 
     if (comm == 'show'){
         setDefaultSuggestion("Enter to show all aliases");
@@ -98,6 +128,7 @@ function getSuggestionsByInput(text){
         setDefaultSuggestion("Illegal operation");
         return [];
     }
+
 
     if (comm == 'empty'){
         return [];
@@ -116,16 +147,21 @@ function parseInput(text){
             if (command_part == '#purge')
                 return ['purge'];
         }
-        if (params.length == 2 && params[1]){
+        if (params.length > 1){
             alias = params[1];
-            if (command_part == '#add')
-                return ['add', alias];
-            if (command_part == '#remove')
-                return ['remove', alias];
+            if (params.length == 2){
+                if (command_part == '#add')
+                    return ['add', alias];
+                if (command_part == '#remove')
+                    return ['remove', alias];
+                if (command_part == '#rename')
+                    return ['rename', [alias, null]];
+            }
+            if (params.length == 3)
+                if (command_part == '#rename')
+                    return ['rename', [alias, params[2]]];
             return ['illegal'];
         }
-        if (params.length > 2)
-            return ['illegal'];
         return ['command', text];
     }
     return ['alias', text];
@@ -183,7 +219,6 @@ function varifyXML(text){
     fixed_text = fixed_text.replace("'", "&apos;");
     fixed_text = fixed_text.replace('<', "&lt;");
     fixed_text = fixed_text.replace('>', "&gt;");
-    console.log("original: " + text + " fixed: " + fixed_text);
     return fixed_text;
 }
 
@@ -218,6 +253,12 @@ function addAlias(alias){
 }
 
 function removeAlias(alias){
+    delete aliases[alias];
+    updateAliases();
+}
+
+function renameAlias(alias, new_alias){
+    aliases[new_alias] = aliases[alias];
     delete aliases[alias];
     updateAliases();
 }
